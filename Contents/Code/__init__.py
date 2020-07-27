@@ -36,21 +36,23 @@ class KinkAgent(Agent.Movies):
                                headers={'Cookie': 'viewing-preferences=straight%2Cgay'})
 
     # use site name as movie studio
-    # add site name to genres
+    # add site name to collections
     metadata.genres.clear()
+    metadata.collections.clear()
     try:
       sitename = html.xpath('//div[@class="shoot-page"]/@data-sitename')[0]
       for link in html.xpath('//a[contains(@href,"%s")]/text()' % sitename):
         if link.strip():
           metadata.studio = link.strip()
           metadata.genres.add(metadata.studio)
+          metadata.collections.add(metadata.studio)
           break
     except:
       pass
 
-    # add channels to genres
-    # add other tags to collections
-    metadata.collections.clear()
+    # add channels to collections
+    # add other tags to genres
+    metadata.genres.clear()
     tags = html.xpath('//div[@class="shoot-info"]//a[starts-with(@href,"/tag/")]')
     for tag in tags:
       if tag.get('href').endswith(':channel'):
@@ -58,7 +60,7 @@ class KinkAgent(Agent.Movies):
           metadata.studio = tag.text_content().strip()
         metadata.genres.add(tag.text_content().strip())
       else:
-        metadata.collections.add(tag.text_content().strip())
+        metadata.genres.add(tag.text_content().strip())
 
     # set movie title to shoot title
     metadata.title = html.xpath('//div[@class="shoot-content"]//h1[@class="shoot-title"]/text()')[0] + " (" + metadata.id + ")"
@@ -67,7 +69,9 @@ class KinkAgent(Agent.Movies):
     metadata.content_rating = 'XXX'
 
     # set episode ID as tagline for easy visibility
-    metadata.tagline = metadata.studio + " – " + metadata.id
+    try:
+      metadata.tagline = metadata.studio + " – " + metadata.id
+    except: pass
 
     # set movie release date to shoot release date
     try:
